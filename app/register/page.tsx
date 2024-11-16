@@ -1,9 +1,9 @@
 'use client'
 
-import { LoginForm } from "@/components/ui/login-form"
+import { RegisterForm } from "@/components/ui/register-form"
 import { SparklesCore } from "@/components/ui/sparkles"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-theme-dark relative overflow-hidden">
       <div className="fixed inset-0 w-full h-full">
@@ -18,7 +18,7 @@ export default function LoginPage() {
       </div>
 
       <div className="min-h-screen w-full flex items-center justify-center relative z-10">
-        <LoginForm />
+        <RegisterForm />
       </div>
     </div>
   )

@@ -118,13 +118,13 @@ export const Carousel = ({ items, initialScroll = 0 }: CarouselProps) => {
                     title: item.title,
                     category: item.description,
                     content: (
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-4 items-center">
                         <p>{item.description}</p>
                         <Link 
                           href={item.link}
-                          className="inline-block bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                          className="inline-block bg-theme-accent text-white px-6 py-2 rounded-lg hover:bg-theme-dark transition-colors w-[50%] text-center"
                         >
-                          Select Format
+                          Create Match
                         </Link>
                       </div>
                     ),
@@ -199,7 +199,7 @@ export const Card = ({
               exit={{ opacity: 0 }}
               ref={containerRef}
               layoutId={layout ? `card-${card.title}` : undefined}
-              className="max-w-5xl mx-auto bg-white dark:bg-neutral-900 h-fit  z-[60] my-10 p-4 md:p-10 rounded-3xl font-sans relative"
+              className="max-w-4xl mx-auto bg-white dark:bg-neutral-900 h-fit z-[60] my-10 p-4 md:p-10 rounded-3xl font-sans relative"
             >
               <button
                 className="sticky top-4 h-8 w-8 right-0 ml-auto bg-black dark:bg-white rounded-full flex items-center justify-center"
@@ -207,19 +207,21 @@ export const Card = ({
               >
                 <IconX className="h-6 w-6 text-neutral-100 dark:text-neutral-900" />
               </button>
-              <motion.p
-                layoutId={layout ? `category-${card.title}` : undefined}
-                className="text-base font-medium text-black dark:text-white"
-              >
-                {card.category}
-              </motion.p>
-              <motion.p
-                layoutId={layout ? `title-${card.title}` : undefined}
-                className="text-2xl md:text-5xl font-semibold text-neutral-700 mt-4 dark:text-white"
-              >
-                {card.title}
-              </motion.p>
-              <div className="py-10">{card.content}</div>
+              <div className="flex flex-col items-center text-center">
+                <motion.p
+                  layoutId={layout ? `category-${card.title}` : undefined}
+                  className="text-base font-medium text-black dark:text-white"
+                >
+                  {card.category}
+                </motion.p>
+                <motion.p
+                  layoutId={layout ? `title-${card.title}` : undefined}
+                  className="text-2xl md:text-5xl font-semibold text-neutral-700 mt-4 dark:text-white"
+                >
+                  {card.title}
+                </motion.p>
+                <div className="py-10">{card.content}</div>
+              </div>
             </motion.div>
           </div>
         )}
