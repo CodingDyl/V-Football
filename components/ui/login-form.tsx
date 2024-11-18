@@ -1,45 +1,90 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
+'use client'
+
+import { useState } from 'react';
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/firebase/auth';
+import { FcGoogle } from 'react-icons/fc';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export function LoginForm() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    const { user, error } = await signInWithGoogle();
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success('Successfully signed in with Google!');
+    router.push('/');
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const { user, error } = isSignUp 
+      ? await signUpWithEmail(email, password)
+      : await signInWithEmail(email, password);
+    
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(isSignUp ? 'Account created successfully!' : 'Successfully signed in!');
+    router.push('/');
+  };
+
   return (
-    <div className="w-full max-w-md p-8 rounded-lg bg-theme-dark/50 backdrop-blur-sm border border-theme-accent/20">
-      <h2 className="text-3xl font-bold text-theme-background mb-2">Welcome back</h2>
-      <p className="text-theme-light mb-6">
-        New to KickHub? <Link href="/register" className="text-theme-primary hover:underline">Create an account</Link>
-      </p>
+    <div className="bg-theme-dark border border-theme-light p-8 rounded-lg shadow-md w-96">
+      <h2 className="text-2xl text-white font-bold mb-6 text-center">
+        {isSignUp ? 'Create Account' : 'Sign In'}
+      </h2>
       
-      <form className="space-y-4">
-        <div>
-          <Input
-            type="email"
-            placeholder="Email"
-            className="w-full bg-theme-dark/50 border-theme-accent/20 text-theme-background"
-          />
-        </div>
-        
-        <div>
-          <Input
-            type="password"
-            placeholder="Password"
-            className="w-full bg-theme-dark/50 border-theme-accent/20 text-theme-background"
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Link href="/forgot-password" className="text-sm text-theme-primary hover:underline">
-            Forgot password?
-          </Link>
-        </div>
-
-        <Button 
+      <form onSubmit={handleEmailAuth} className="space-y-4">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+        <button
           type="submit"
-          className="w-full bg-theme-primary hover:bg-theme-light text-theme-dark"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
         >
-          Sign in
-        </Button>
+          {isSignUp ? 'Sign Up' : 'Sign In'}
+        </button>
       </form>
+
+      <div className="mt-4">
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full bg-white border border-gray-300 p-2 rounded flex items-center justify-center gap-2 hover:bg-gray-50"
+        >
+          <FcGoogle className="w-5 h-5" />
+          Continue with Google
+        </button>
+      </div>
+
+      <p className="mt-4 text-center text-white">
+        {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+        <button
+          onClick={() => setIsSignUp(!isSignUp)}
+          className="text-blue-500 ml-2 hover:underline"
+        >
+          {isSignUp ? 'Sign In' : 'Sign Up'}
+        </button>
+      </p>
     </div>
-  )
+  );
 } 
