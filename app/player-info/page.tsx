@@ -240,6 +240,11 @@ export default function PlayerInfoPage() {
                                 Create Team Profile
                             </Button>
                         </Link>
+                        <Link href="/join-team">
+                            <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                                Join Team
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
               )}
