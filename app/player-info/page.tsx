@@ -10,6 +10,9 @@ import Link from 'next/link'
 import { SparklesCore } from "@/components/ui/sparkles"
 import { Navbar } from '@/components/ui/navbar'
 import { Footer } from '@/components/ui/footer'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { EditPlayerForm } from '@/components/EditPlayerForm'
+import { Toaster } from "sonner"
 
 interface PlayerStats {
   assists: number
@@ -21,6 +24,7 @@ interface PlayerStats {
 }
 
 interface PlayerInfo {
+  id: string;
   fitnessLevel: string
   fullName: string
   injuryStatus: string
@@ -43,52 +47,54 @@ export default function PlayerInfoPage() {
   const [playerInfo, setPlayerInfo] = useState<PlayerInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+  const fetchPlayerInfo = async () => {
+    if (!user) return
+
+    try {
+      // Query playerInfo collection where userId matches current user
+      const playerInfoQuery = query(
+        collection(db, 'playerInfo'),
+        where('userId', '==', user.uid)
+      )
+
+      const playerInfoSnapshot = await getDocs(playerInfoQuery)
+
+      if (!playerInfoSnapshot.empty) {
+        const playerData = playerInfoSnapshot.docs[0].data()
+        
+        // Fetch associated stats - create proper doc reference
+        const statsDocRef = doc(db, 'stats', playerData.stats_id)
+        const statsDoc = await getDoc(statsDocRef)
+        const statsData = statsDoc.exists() ? statsDoc.data() : null
+
+        // Fetch team info
+        const teamsQuery = query(
+          collection(db, 'teams'),
+          where('players', 'array-contains', user.uid)
+        )
+        const teamSnapshot = await getDocs(teamsQuery)
+        
+        if (!teamSnapshot.empty) {
+          const teamData = teamSnapshot.docs[0].data() as TeamInfo
+          setTeamInfo(teamData)
+        }
+
+        setPlayerInfo({
+          ...playerData,
+          id: playerInfoSnapshot.docs[0].id,
+          stats: statsData
+        } as PlayerInfo)
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchPlayerInfo = async () => {
-      if (!user) return
-
-      try {
-        // Query playerInfo collection where userId matches current user
-        const playerInfoQuery = query(
-          collection(db, 'playerInfo'),
-          where('userId', '==', user.uid)
-        )
-
-        const playerInfoSnapshot = await getDocs(playerInfoQuery)
-
-        if (!playerInfoSnapshot.empty) {
-          const playerData = playerInfoSnapshot.docs[0].data()
-          
-          // Fetch associated stats - create proper doc reference
-          const statsDocRef = doc(db, 'stats', playerData.stats_id)
-          const statsDoc = await getDoc(statsDocRef)
-          const statsData = statsDoc.exists() ? statsDoc.data() : null
-
-          // Fetch team info
-          const teamsQuery = query(
-            collection(db, 'teams'),
-            where('players', 'array-contains', user.uid)
-          )
-          const teamSnapshot = await getDocs(teamsQuery)
-          
-          if (!teamSnapshot.empty) {
-            const teamData = teamSnapshot.docs[0].data() as TeamInfo
-            setTeamInfo(teamData)
-          }
-
-          setPlayerInfo({
-            ...playerData,
-            stats: statsData
-          } as PlayerInfo)
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchPlayerInfo()
   }, [user])
 
@@ -111,8 +117,14 @@ export default function PlayerInfoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-theme-dark flex items-center justify-center">
-        <div className="text-theme-background">Loading...</div>
+      <div className="min-h-screen bg-theme-dark flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-theme-accent rounded-full animate-spin border-t-transparent" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-4 h-4 bg-theme-accent rounded-full animate-pulse" />
+          </div>
+        </div>
+        <p className="text-theme-background mt-4 animate-pulse">Loading Player Profile...</p>
       </div>
     )
   }
@@ -207,26 +219,44 @@ export default function PlayerInfoPage() {
                     <CardContent className="p-6 flex flex-col items-start justify-center gap-4">
                       <CardTitle className="text-theme-background mb-8">Manage Player Profile:</CardTitle>
                       <div className="flex flex-row items-center justify-around w-full px-4">
-                      <Link href="/edit-profile">
-                        <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                        <Button 
+                          onClick={() => setIsEditModalOpen(true)} 
+                          className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
                           Edit Player Profile
                         </Button>
-                      </Link>
-                      <Link href="/create-team">
-                        <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                          Create New Team
-                        </Button>
-                      </Link>
-                      <Link href="/join-team">
-                        <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                          Join Another Team
-                        </Button>
-                      </Link>
-                      <Link href="/leave-team">
-                        <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                          Leave Team
-                        </Button>
-                      </Link>
+                        
+                        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                          <DialogContent className="bg-theme-dark border border-theme-accent">
+                            <DialogHeader>
+                              <DialogTitle className="text-theme-background">Edit Player Profile</DialogTitle>
+                            </DialogHeader>
+                            <EditPlayerForm 
+                              playerInfo={playerInfo} 
+                              onSuccess={() => {
+                                setIsEditModalOpen(false)
+                                // Refresh player info after update
+                                fetchPlayerInfo()
+                              }} 
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Link href="/create-team">
+                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                            Create New Team
+                          </Button>
+                        </Link>
+                        <Link href="/join-team">
+                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                            Join Another Team
+                          </Button>
+                        </Link>
+                        <Link href="/leave-team">
+                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                            Leave Team
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
@@ -264,6 +294,7 @@ export default function PlayerInfoPage() {
         </div>
 
         <Footer />
+        <Toaster richColors />
       </div>
     </div>
   )

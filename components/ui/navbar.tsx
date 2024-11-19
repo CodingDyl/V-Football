@@ -19,9 +19,10 @@ interface NavbarProps {
   } | null;
   auth: Auth;
   logo?: string;
+  isManager?: boolean;
 }
 
-export function Navbar({ user, auth, logo = "KickHub" }: NavbarProps) {
+export function Navbar({ user, auth, logo = "KickHub", isManager = false }: NavbarProps) {
   return (
     <nav className="fixed top-0 w-full z-50 bg-theme-dark/80 backdrop-blur-sm border-b border-theme-accent/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,6 +41,11 @@ export function Navbar({ user, auth, logo = "KickHub" }: NavbarProps) {
             <Link href="/shop" className="text-theme-background hover:text-theme-primary transition-colors">
               Merchandise
             </Link>
+            {user && isManager && (
+              <Link href="/manage-team" className="text-theme-background hover:text-theme-primary transition-colors">
+                Manage Team
+              </Link>
+            )}
             {user ? (
               <>
                 <Link href="/player-info" className="text-theme-background hover:text-theme-primary transition-colors">
