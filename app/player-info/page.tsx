@@ -280,6 +280,7 @@ export default function PlayerInfoPage() {
               )}
             </div>
           ) : (
+            <div className=" min-h-[60vh] flex-grow flex items-center justify-center">
             <Card className="max-w-md mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
               <CardContent className="p-6 text-center">
                 <h2 className="text-2xl font-bold text-theme-background mb-4">No Player Profile Found</h2>
@@ -289,7 +290,8 @@ export default function PlayerInfoPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+              </Card>
+            </div>
           )}
         </div>
 

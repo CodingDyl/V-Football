@@ -129,7 +129,7 @@ export default function LandingPage() {
                             Login
                           </Button>
                         </Link>
-                        <Link href="/register">
+                        <Link href="/login">
                           <Button size="lg" 
                             className="bg-theme-primary hover:bg-theme-light text-theme-dark rounded-none rounded-tl-lg rounded-tr-lg">
                             Sign Up
