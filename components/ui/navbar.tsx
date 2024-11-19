@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { signOut } from 'firebase/auth'
 import { Auth } from 'firebase/auth'
+import { Menu } from 'lucide-react'
+import { useState } from 'react'
 
 interface NavbarProps {
   user: {
@@ -22,6 +24,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, auth, logo = "KickHub"}: NavbarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
   return (
     <nav className="fixed top-0 w-full z-50 bg-theme-dark/80 backdrop-blur-sm border-b border-theme-accent/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,7 +86,85 @@ export function Navbar({ user, auth, logo = "KickHub"}: NavbarProps) {
               </Link>
             )}
           </div>
+
+          <button
+            className="md:hidden text-theme-background hover:text-theme-primary"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <Menu size={24} />
+          </button>
         </div>
+
+        {isMobileMenuOpen && (
+          <div className="md:hidden py-4">
+            <div className="flex flex-col space-y-4 px-4">
+              <Link 
+                href="/book" 
+                className="text-theme-background hover:text-theme-primary transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Book a Game
+              </Link>
+              <Link 
+                href="/stats" 
+                className="text-theme-background hover:text-theme-primary transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Player Stats
+              </Link>
+              <Link 
+                href="/shop" 
+                className="text-theme-background hover:text-theme-primary transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Merchandise
+              </Link>
+              {user ? (
+                <>
+                  <Link 
+                    href="/manage-team" 
+                    className="text-theme-background hover:text-theme-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Manage Team
+                  </Link>
+                  <Link 
+                    href="/player-info" 
+                    className="text-theme-background hover:text-theme-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Player Info
+                  </Link>
+                  <Link 
+                    href="/account" 
+                    className="text-theme-background hover:text-theme-primary transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Edit Account
+                  </Link>
+                  <button 
+                    className="text-theme-background hover:text-theme-primary transition-colors text-left"
+                    onClick={() => {
+                      signOut(auth)
+                      setIsMobileMenuOpen(false)
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Button size="sm" className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light rounded-none rounded-tl-lg rounded-tr-lg px-4">
+                    Login
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )
