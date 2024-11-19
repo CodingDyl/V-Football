@@ -30,20 +30,7 @@ interface User {
 
 export default function LandingPage() {
   const [user] = useAuthState(auth);
-  const [isManager, setIsManager] = useState(false);
 
-  useEffect(() => {
-    const checkManagerStatus = async () => {
-      if (user) {
-        const teamsRef = collection(db, 'teams')
-        const q = query(teamsRef, where('manager', '==', user.uid))
-        const snapshot = await getDocs(q)
-        setIsManager(!snapshot.empty)
-      }
-    }
-
-    checkManagerStatus()
-  }, [user])
   const words = "Organize matches, create balanced teams, and play beautiful football"
   
   const formats = [
@@ -81,7 +68,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-theme-dark relative overflow-hidden">
-      <Navbar user={user ? { email: user.email, photoURL: user.photoURL } : null} auth={auth} logo="KickHub" isManager={isManager} />
+      <Navbar user={user ? { email: user.email, photoURL: user.photoURL } : null} auth={auth} logo="KickHub" />
 
       <div className="fixed inset-0 w-full h-full">
         <SparklesCore

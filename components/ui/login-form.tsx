@@ -1,16 +1,14 @@
 'use client'
 
-import { useState } from 'react';
-import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/firebase/auth';
+import { useState, useEffect } from 'react';
+import { signInWithGoogle } from '@/firebase/auth';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleGoogleSignIn = async () => {
     const { user, error } = await signInWithGoogle();
@@ -22,69 +20,19 @@ export function LoginForm() {
     router.push('/');
   };
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const { user, error } = isSignUp 
-      ? await signUpWithEmail(email, password)
-      : await signInWithEmail(email, password);
-    
-    if (error) {
-      toast.error(error);
-      return;
-    }
-    toast.success(isSignUp ? 'Account created successfully!' : 'Successfully signed in!');
-    router.push('/');
-  };
-
   return (
-    <div className="bg-theme-dark border border-theme-light p-8 rounded-lg shadow-md w-96">
-      <h2 className="text-2xl text-white font-bold mb-6 text-center">
-        {isSignUp ? 'Create Account' : 'Sign In'}
+    <div className="backdrop-blur-md bg-black/30 border border-white/10 p-8 rounded-2xl shadow-2xl w-96">
+      <h2 className="text-3xl text-white font-bold mb-8 text-center">
+        Login or Get Started!
       </h2>
-      
-      <form onSubmit={handleEmailAuth} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
-          {isSignUp ? 'Sign Up' : 'Sign In'}
-        </button>
-      </form>
 
-      <div className="mt-4">
-        <button
-          onClick={handleGoogleSignIn}
-          className="w-full bg-white border border-gray-300 p-2 rounded flex items-center justify-center gap-2 hover:bg-gray-50"
-        >
-          <FcGoogle className="w-5 h-5" />
-          Continue with Google
-        </button>
-      </div>
-
-      <p className="mt-4 text-center text-white">
-        {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-        <button
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="text-blue-500 ml-2 hover:underline"
-        >
-          {isSignUp ? 'Sign In' : 'Sign Up'}
-        </button>
-      </p>
+      <button
+        onClick={handleGoogleSignIn}
+        className="w-full bg-white/10 backdrop-blur-sm border border-white/20 p-3 rounded-xl flex items-center justify-center gap-3 hover:bg-white/20 transition-all duration-300 text-white"
+      >
+        <FcGoogle className="w-6 h-6" />
+        Continue with Google
+      </button>
     </div>
   );
 } 

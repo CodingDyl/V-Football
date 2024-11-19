@@ -75,6 +75,8 @@ const config: Config = {
   			"shimmer": "shimmer 2s linear infinite",
   			"spotlight": "spotlight 2s ease .75s 1 forwards",
   			"float": "float 3s ease-in-out infinite",
+  			"scroll-up": "scroll-up 40s linear infinite",
+  			"scroll-down": "scroll-down 40s linear infinite",
   		},
   		keyframes: {
   			meteor: {
@@ -106,6 +108,14 @@ const config: Config = {
   			float: {
   				"0%, 100%": { transform: "translateY(0)" },
   				"50%": { transform: "translateY(-10px)" },
+  			},
+  			"scroll-up": {
+  				"0%": { transform: "translateY(0)" },
+  				"100%": { transform: "translateY(-50%)" },
+  			},
+  			"scroll-down": {
+  				"0%": { transform: "translateY(-50%)" },
+  				"100%": { transform: "translateY(0)" },
   			},
   		},
   	}
