@@ -63,16 +63,17 @@ export default function PlayerInfoPage() {
 
       if (!playerInfoSnapshot.empty) {
         const playerData = playerInfoSnapshot.docs[0].data()
+        const playerId = playerInfoSnapshot.docs[0].id  // Get the player document ID
         
         // Fetch associated stats - create proper doc reference
         const statsDocRef = doc(db, 'stats', playerData.stats_id)
         const statsDoc = await getDoc(statsDocRef)
         const statsData = statsDoc.exists() ? statsDoc.data() : null
 
-        // Fetch team info
+        // Updated: Use playerId instead of user.uid
         const teamsQuery = query(
           collection(db, 'teams'),
-          where('players', 'array-contains', user.uid)
+          where('players', 'array-contains', playerId)  // Changed from user.uid to playerId
         )
         const teamSnapshot = await getDocs(teamsQuery)
         
@@ -145,7 +146,7 @@ export default function PlayerInfoPage() {
       </div>
 
       <div className="min-h-screen w-full relative">
-        <div className="min-h-screen relative z-10 container mx-auto px-4 py-24">
+        <div className="min-h-screenrelative z-10 container mx-auto px-4 py-24">
           {playerInfo ? (
             <div className="grid md:grid-cols-2 gap-8">
               {/* Player Details Card */}
