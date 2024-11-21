@@ -265,9 +265,10 @@ export default function PlayerInfoPage() {
                 <Card className="col-span-2 w-full mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
                     <CardContent className="p-6 text-center">
                         <h2 className="text-2xl font-bold text-theme-background mb-4">No Team Profile Found</h2>
-                        <Link href="/create-profile">
+                        <div className="flex flex-row items-center justify-center gap-4 w-full px-4">
+                        <Link href="/create-team">
                             <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                                Create Team Profile
+                                Create A Team
                             </Button>
                         </Link>
                         <Link href="/join-team">
@@ -275,6 +276,7 @@ export default function PlayerInfoPage() {
                                 Join Team
                             </Button>
                         </Link>
+                        </div>
                     </CardContent>
                 </Card>
               )}
