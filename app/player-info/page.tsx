@@ -145,7 +145,7 @@ export default function PlayerInfoPage() {
       </div>
 
       <div className="min-h-screen w-full relative">
-        <div className="relative z-10 container mx-auto px-4 py-24">
+        <div className="min-h-screen relative z-10 container mx-auto px-4 py-24">
           {playerInfo ? (
             <div className="grid md:grid-cols-2 gap-8">
               {/* Player Details Card */}

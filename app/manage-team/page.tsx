@@ -199,7 +199,7 @@ export default function ManageTeam() {
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-24">
+      <div className="min-h-screen relative z-10 container mx-auto px-4 py-24">
         <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent mb-8">
           <CardHeader>
             <CardTitle className="text-theme-background">{team.teamName}</CardTitle>
