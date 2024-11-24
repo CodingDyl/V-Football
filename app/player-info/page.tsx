@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { auth, db } from '@/firebase/clientApp'
-import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore'
+import { collection, doc, getDoc, query, where, getDocs, updateDoc, arrayRemove } from 'firebase/firestore'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
@@ -13,6 +13,8 @@ import { Footer } from '@/components/ui/footer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EditPlayerForm } from '@/components/EditPlayerForm'
 import { Toaster } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
 
 interface PlayerStats {
   assists: number
@@ -48,6 +50,9 @@ export default function PlayerInfoPage() {
   const [loading, setLoading] = useState(true)
   const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isLeaveTeamModalOpen, setIsLeaveTeamModalOpen] = useState(false)
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("")
+  const [userTeams, setUserTeams] = useState<Array<{ id: string, teamName: string }>>([])
 
   const fetchPlayerInfo = async () => {
     if (!user) return
@@ -95,9 +100,52 @@ export default function PlayerInfoPage() {
     }
   }
 
+  const fetchUserTeams = async () => {
+    if (!playerInfo) return
+    
+    try {
+      const teamsQuery = query(
+        collection(db, 'teams'),
+        where('players', 'array-contains', playerInfo.id)
+      )
+      const teamsSnapshot = await getDocs(teamsQuery)
+      const teams = teamsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        teamName: doc.data().teamName
+      }))
+      setUserTeams(teams)
+    } catch (error) {
+      console.error('Error fetching teams:', error)
+    }
+  }
+
+  const handleLeaveTeam = async () => {
+    if (!selectedTeamId || !playerInfo) return
+    
+    try {
+      const teamRef = doc(db, 'teams', selectedTeamId)
+      await updateDoc(teamRef, {
+        players: arrayRemove(playerInfo.id)
+      })
+      
+      setIsLeaveTeamModalOpen(false)
+      fetchPlayerInfo() // Refresh player info
+      toast.success('Successfully left the team')
+    } catch (error) {
+      console.error('Error leaving team:', error)
+      toast.error('Failed to leave team')
+    }
+  }
+
   useEffect(() => {
     fetchPlayerInfo()
   }, [user])
+
+  useEffect(() => {
+    if (isLeaveTeamModalOpen) {
+      fetchUserTeams()
+    }
+  }, [isLeaveTeamModalOpen])
 
   if (!user) {
     return (
@@ -131,6 +179,7 @@ export default function PlayerInfoPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-theme-dark relative overflow-hidden">
       <Navbar user={user} auth={auth} />
 
@@ -253,11 +302,12 @@ export default function PlayerInfoPage() {
                             Join Another Team
                           </Button>
                         </Link>
-                        <Link href="/leave-team">
-                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                            Leave Team
-                          </Button>
-                        </Link>
+                        <Button 
+                          onClick={() => setIsLeaveTeamModalOpen(true)}
+                          className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Leave Team
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -301,6 +351,45 @@ export default function PlayerInfoPage() {
         <Footer />
         <Toaster richColors />
       </div>
-    </div>
+      </div>
+
+      <Dialog open={isLeaveTeamModalOpen} onOpenChange={setIsLeaveTeamModalOpen}>
+      <DialogContent className="bg-theme-dark border border-theme-accent">
+        <DialogHeader>
+          <DialogTitle className="text-theme-background">Leave Team</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Select onValueChange={setSelectedTeamId}>
+            <SelectTrigger className="w-full text-white">
+              <SelectValue placeholder="Select team to leave" />
+            </SelectTrigger>
+            <SelectContent className="text-white bg-theme-dark">
+              {userTeams.map((team) => (
+                <SelectItem key={team.id} value={team.id}>
+                  {team.teamName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex justify-end space-x-2">
+            <Button
+              onClick={() => setIsLeaveTeamModalOpen(false)}
+              variant="outline"
+              className="border-theme-accent bg-theme-accent text-white hover:bg-theme-dark hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleLeaveTeam}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={!selectedTeamId}
+            >
+              Leave Team
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
