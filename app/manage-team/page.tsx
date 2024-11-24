@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { auth, db } from '@/firebase/clientApp'
-import { collection, query, where, getDocs, doc, getDoc, addDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc, addDoc, deleteDoc } from 'firebase/firestore'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SparklesCore } from "@/components/ui/sparkles"
 import { Navbar } from "@/components/ui/navbar"
@@ -48,6 +48,9 @@ interface Match {
   opponent: string;
   location: string;
   status: 'upcoming' | 'completed';
+  format: string;
+  substitutesEnabled: boolean;
+  requiredPlayers: number;
   score?: {
     home: number;
     away: number;
@@ -69,9 +72,22 @@ interface MatchFormData {
   status: 'upcoming' | 'completed';
 }
 
+// Add new interface for team
+interface Team {
+  id: string;
+  teamName: string;
+  location: string;
+  league: boolean;
+  winRate: number;
+  manager: string;
+  players: string[];
+}
+
 export default function ManageTeam() {
   const [user] = useAuthState(auth)
   const [loading, setLoading] = useState(true)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('')
   const [team, setTeam] = useState<any>(null)
   const [players, setPlayers] = useState<TeamPlayer[]>([])
   const [matches, setMatches] = useState<Match[]>([])
@@ -82,7 +98,7 @@ export default function ManageTeam() {
   const [isCreateMatchModalOpen, setIsCreateMatchModalOpen] = useState(false)
 
   useEffect(() => {
-    const fetchTeamData = async () => {
+    const fetchTeams = async () => {
       if (!user) return
 
       try {
@@ -95,20 +111,42 @@ export default function ManageTeam() {
           return
         }
 
-        const teamDoc = teamSnapshot.docs[0]
-        const teamData = teamDoc.data()
-        setTeam(teamData)
+        const teamsData = teamSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Team[]
+        
+        setTeams(teamsData)
+        setSelectedTeamId(teamsData[0].id) // Select first team by default
+      } catch (error) {
+        console.error('Error fetching teams:', error)
+      }
+    }
 
-        const playersPromises = teamData.players.map(async (playerId: string) => {
+    fetchTeams()
+  }, [user])
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      if (!selectedTeamId) return
+
+      setLoading(true)
+      try {
+        const selectedTeam = teams.find(t => t.id === selectedTeamId)
+        setTeam(selectedTeam)
+
+        // Fetch players
+        const playersPromises = selectedTeam?.players.map(async (playerId: string) => {
           const playerDoc = await getDoc(doc(db, 'playerInfo', playerId))
           if (!playerDoc.exists()) return null
           return { id: playerId, ...playerDoc.data() }
-        })
+        }) || []
         const playersData = (await Promise.all(playersPromises)).filter(player => player !== null) as TeamPlayer[]
         setPlayers(playersData)
 
+        // Fetch matches
         const matchesRef = collection(db, 'matches')
-        const matchesQuery = query(matchesRef, where('teamId', '==', teamDoc.id))
+        const matchesQuery = query(matchesRef, where('teamId', '==', selectedTeamId))
         const matchesSnapshot = await getDocs(matchesQuery)
         const matchesData = matchesSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -116,8 +154,9 @@ export default function ManageTeam() {
         })) as Match[]
         setMatches(matchesData)
 
+        // Fetch team sheets
         const sheetsRef = collection(db, 'teamSheets')
-        const sheetsQuery = query(sheetsRef, where('teamId', '==', teamDoc.id))
+        const sheetsQuery = query(sheetsRef, where('teamId', '==', selectedTeamId))
         const sheetsSnapshot = await getDocs(sheetsQuery)
         const sheetsData = sheetsSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -133,7 +172,7 @@ export default function ManageTeam() {
     }
 
     fetchTeamData()
-  }, [user])
+  }, [selectedTeamId, teams])
 
   if (!user) {
     return (
@@ -200,6 +239,22 @@ export default function ManageTeam() {
       </div>
 
       <div className="min-h-screen relative z-10 container mx-auto px-4 py-24">
+        {teams.length > 1 && (
+          <div className="mb-8">
+            <select
+              value={selectedTeamId}
+              onChange={(e) => setSelectedTeamId(e.target.value)}
+              className="w-full max-w-xs p-2 bg-theme-dark/50 backdrop-blur-sm border border-theme-accent rounded text-theme-background"
+            >
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.teamName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent mb-8">
           <CardHeader>
             <CardTitle className="text-theme-background">{team.teamName}</CardTitle>
@@ -285,15 +340,44 @@ export default function ManageTeam() {
                               <TableCell className="text-theme-light">{match.opponent}</TableCell>
                               <TableCell className="text-theme-light">{match.location}</TableCell>
                               <TableCell>
-                                <Button
-                                  onClick={() => {
-                                    setSelectedMatch(match)
-                                    setIsTeamSheetModalOpen(true)
-                                  }}
-                                  className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
-                                >
-                                  Create Team Sheet
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => {
+                                      setSelectedMatch(match)
+                                      setIsTeamSheetModalOpen(true)
+                                    }}
+                                    className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                                  >
+                                    Create Team Sheet
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      setSelectedMatch(match)
+                                      setIsUpdateMatchModalOpen(true)
+                                    }}
+                                    className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    onClick={async () => {
+                                      if (window.confirm('Are you sure you want to delete this match?')) {
+                                        try {
+                                          await deleteDoc(doc(db, 'matches', match.id));
+                                          setMatches(matches.filter(m => m.id !== match.id));
+                                          toast.success('Match deleted successfully');
+                                        } catch (error) {
+                                          console.error('Error deleting match:', error);
+                                          toast.error('Failed to delete match');
+                                        }
+                                      }
+                                    }}
+                                    variant="destructive"
+                                    className="bg-red-600 text-white hover:bg-red-700 border border-theme-light"
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}

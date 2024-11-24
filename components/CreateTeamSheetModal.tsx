@@ -19,6 +19,9 @@ interface Player {
 interface Match {
   id: string
   opponent: string
+  format: '5v5' | '6v6' | '11v11'
+  substitutesEnabled: boolean
+  requiredPlayers: number
 }
 
 interface Props {
@@ -29,17 +32,27 @@ interface Props {
   onCreate: (teamSheet: any) => Promise<void>
 }
 
-const FORMATIONS = [
-  '4-4-2',
-  '4-3-3',
-  '3-5-2',
-  '4-2-3-1',
-  '5-3-2'
-]
+const MATCH_FORMATS = {
+  '5v5': {
+    formations: ['1-2-2', '1-3-1', '1-2-1-1'],
+    players: 5
+  },
+  '6v6': {
+    formations: ['1-2-1-2', '1-2-3', '1-3-2'],
+    players: 6
+  },
+  '11v11': {
+    formations: ['4-4-2', '4-3-3', '3-5-2', '4-2-3-1', '5-3-2'],
+    players: 11
+  }
+} as const;
+
+type FormationType = typeof MATCH_FORMATS[keyof typeof MATCH_FORMATS]['formations'][number];
 
 export function CreateTeamSheetModal({ isOpen, onClose, match, players, onCreate }: Props) {
-  const [formation, setFormation] = useState(FORMATIONS[0])
+  const [formation, setFormation] = useState<FormationType>(MATCH_FORMATS[match.format].formations[0])
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([])
+  const [substitutes, setSubstitutes] = useState<Player[]>([])
   const [loading, setLoading] = useState(false)
 
   const handleDragEnd = (result: any) => {
@@ -61,8 +74,8 @@ export function CreateTeamSheetModal({ isOpen, onClose, match, players, onCreate
   }
 
   const handleSubmit = async () => {
-    if (selectedPlayers.length < 11) {
-      toast.error('Please select 11 players')
+    if (selectedPlayers.length !== match.requiredPlayers) {
+      toast.error(`Please select exactly ${match.requiredPlayers} players`)
       return
     }
 
@@ -72,6 +85,7 @@ export function CreateTeamSheetModal({ isOpen, onClose, match, players, onCreate
         matchId: match.id,
         formation,
         players: selectedPlayers.map(p => p.id),
+        substitutes: match.substitutesEnabled ? substitutes.map(p => p.id) : [],
         created: new Date().toISOString(),
       }
 
@@ -101,12 +115,14 @@ export function CreateTeamSheetModal({ isOpen, onClose, match, players, onCreate
         <div className="space-y-6">
           <div>
             <Label className="text-theme-background">Formation</Label>
-            <Select value={formation} onValueChange={setFormation}>
+            <Select 
+              value={formation} 
+              onValueChange={(value: FormationType) => setFormation(value)}>
               <SelectTrigger className="bg-theme-dark/50 border-theme-accent text-theme-light">
                 <SelectValue placeholder="Select formation" />
               </SelectTrigger>
               <SelectContent className="bg-theme-dark border-theme-accent">
-                {FORMATIONS.map((f) => (
+                {MATCH_FORMATS[match.format].formations.map((f) => (
                   <SelectItem key={f} value={f} className="text-theme-light">
                     {f}
                   </SelectItem>
@@ -179,13 +195,13 @@ export function CreateTeamSheetModal({ isOpen, onClose, match, players, onCreate
             <Button
               onClick={onClose}
               variant="outline"
-              className="border-theme-accent text-theme-background"
+              className="border-theme-accent bg-theme-accent text-white hover:bg-theme-dark hover:text-white"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={loading || selectedPlayers.length !== 11}
+              disabled={loading || selectedPlayers.length !== match.requiredPlayers}
               className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
             >
               {loading ? 'Creating...' : 'Create Team Sheet'}
