@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { generateTeamCode } from '@/utils/generateTeamCode'
 
 interface TeamFormData {
   teamName: string
@@ -72,6 +73,7 @@ export function TeamCreationForm({ onSuccess }: TeamCreationFormProps) {
 
       const newTeam = {
         ...teamData,
+        joinCode: generateTeamCode(),
         manager: user.uid,
         players: [playerId],
         winRate: 0

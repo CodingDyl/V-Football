@@ -15,6 +15,7 @@ import { EditPlayerForm } from '@/components/EditPlayerForm'
 import { Toaster } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { JoinTeamModal } from '@/components/JoinTeamModal'
 
 interface PlayerStats {
   assists: number
@@ -53,6 +54,7 @@ export default function PlayerInfoPage() {
   const [isLeaveTeamModalOpen, setIsLeaveTeamModalOpen] = useState(false)
   const [selectedTeamId, setSelectedTeamId] = useState<string>("")
   const [userTeams, setUserTeams] = useState<Array<{ id: string, teamName: string }>>([])
+  const [isJoinTeamModalOpen, setIsJoinTeamModalOpen] = useState(false)
 
   const fetchPlayerInfo = async () => {
     if (!user) return
@@ -297,11 +299,12 @@ export default function PlayerInfoPage() {
                             Create New Team
                           </Button>
                         </Link>
-                        <Link href="/join-team">
-                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                            Join Another Team
-                          </Button>
-                        </Link>
+                        <Button 
+                          onClick={() => setIsJoinTeamModalOpen(true)}
+                          className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Join Team
+                        </Button>
                         <Button 
                           onClick={() => setIsLeaveTeamModalOpen(true)}
                           className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
@@ -322,11 +325,12 @@ export default function PlayerInfoPage() {
                                 Create A Team
                             </Button>
                         </Link>
-                        <Link href="/join-team">
-                            <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                                Join Team
-                            </Button>
-                        </Link>
+                        <Button 
+                          onClick={() => setIsJoinTeamModalOpen(true)}
+                          className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Join Team
+                        </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -390,6 +394,12 @@ export default function PlayerInfoPage() {
         </div>
       </DialogContent>
     </Dialog>
+
+    <JoinTeamModal 
+      isOpen={isJoinTeamModalOpen} 
+      onClose={() => setIsJoinTeamModalOpen(false)}
+      playerId={playerInfo?.id}
+    />
     </>
   )
 }
