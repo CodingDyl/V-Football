@@ -36,6 +36,20 @@ interface League {
   code: string
 }
 
+interface Standing {
+  position: number
+  team: {
+    name: string
+    crest: string
+  }
+  playedGames: number
+  won: number
+  draw: number
+  lost: number
+  points: number
+  goalDifference: number
+}
+
 const leagues: League[] = [
   { id: "2021", name: "Premier League", code: "PL" },
   { id: "2002", name: "Bundesliga", code: "BL1" },
@@ -47,13 +61,14 @@ export default function LiveScoresPage() {
   const [selectedLeague, setSelectedLeague] = useState<League>(leagues[0])
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
+  const [standings, setStandings] = useState<Standing[]>([])
 
   useEffect(() => {
     const fetchMatches = async () => {
       setLoading(true)
       try {
         const response = await fetch(
-          `/api/football?leagueId=${selectedLeague.id}`
+          `/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
         const data = await response.json()
         setMatches(data.matches || [])
@@ -64,6 +79,22 @@ export default function LiveScoresPage() {
     }
 
     fetchMatches()
+  }, [selectedLeague])
+
+  useEffect(() => {
+    const fetchStandings = async () => {
+      try {
+        const response = await fetch(
+          `/api/football?leagueId=${selectedLeague.id}&type=standings`
+        )
+        const data = await response.json()
+        setStandings(data.standings?.[0]?.table || [])
+      } catch (error) {
+        console.error('Error fetching standings:', error)
+      }
+    }
+
+    fetchStandings()
   }, [selectedLeague])
 
   return (
@@ -177,6 +208,49 @@ export default function LiveScoresPage() {
           </Card>
         </div>
       </div>
+
+      <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent my-8 mx-20">
+        <CardHeader>
+          <CardTitle className="text-theme-background">League Table</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-theme-background text-left">
+                  <th className="p-2">Pos</th>
+                  <th className="p-2">Team</th>
+                  <th className="p-2">P</th>
+                  <th className="p-2">W</th>
+                  <th className="p-2">D</th>
+                  <th className="p-2">L</th>
+                  <th className="p-2">GD</th>
+                  <th className="p-2">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {standings.map((standing) => (
+                  <tr key={standing.team.name} className="text-theme-background border-t border-theme-accent/30">
+                    <td className="p-2">{standing.position}</td>
+                    <td className="p-2">
+                      <div className="flex items-center space-x-2">
+                        <img src={standing.team.crest} alt="" className="w-6 h-6" />
+                        <span>{standing.team.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-2">{standing.playedGames}</td>
+                    <td className="p-2">{standing.won}</td>
+                    <td className="p-2">{standing.draw}</td>
+                    <td className="p-2">{standing.lost}</td>
+                    <td className="p-2">{standing.goalDifference}</td>
+                    <td className="p-2 font-bold">{standing.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Footer />
     </div>
