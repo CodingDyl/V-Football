@@ -57,7 +57,7 @@ const leagues: League[] = [
   { id: "2014", name: "La Liga", code: "PD" },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
 
 export default function LiveScoresPage() {
   const [user] = useAuthState(auth)
