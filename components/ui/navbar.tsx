@@ -35,7 +35,7 @@ export function Navbar({ user, auth, logo = "KickHub"}: NavbarProps) {
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/book" className="text-theme-background hover:text-theme-primary transition-colors">
+            <Link href="/book-game" className="text-theme-background hover:text-theme-primary transition-colors">
               Book a Game
             </Link>
             <Link href="/stats" className="text-theme-background hover:text-theme-primary transition-colors">

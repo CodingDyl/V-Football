@@ -2,42 +2,48 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 
 export async function GET(request: Request) {
-  // Add CORS headers
-  const headersList = headers()
-  const origin = headersList.get('origin') || ''
-
   const { searchParams } = new URL(request.url)
   const leagueId = searchParams.get('leagueId')
-  const type = searchParams.get('type') // 'matches' or 'standings'
+  const type = searchParams.get('type')
+
+  if (!process.env.FOOTBALL_API_KEY) {
+    console.error('FOOTBALL_API_KEY is not set')
+    return NextResponse.json({ error: 'API key configuration error' }, { status: 500 })
+  }
 
   try {
     const endpoint = type === 'standings'
       ? `https://api.football-data.org/v4/competitions/${leagueId}/standings`
-      : `https://api.football-data.org/v4/competitions/${leagueId}/matches?status=SCHEDULED,FINISHED`
+      : `https://api.football-data.org/v4/competitions/${leagueId}/matches`
+
+    console.log('Making request to:', endpoint)
+    console.log('Using API key:', process.env.FOOTBALL_API_KEY.substring(0, 5) + '...')
 
     const response = await fetch(endpoint, {
       headers: {
-        'X-Auth-Token': process.env.NEXT_PUBLIC_FOOTBALL_API_KEY || ''
-      }
+        'X-Auth-Token': process.env.FOOTBALL_API_KEY,
+        'Content-Type': 'application/json',
+      },
     })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Football API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      return NextResponse.json(errorData, { status: response.status })
+    }
+
     const data = await response.json()
-    
-    return new NextResponse(JSON.stringify(data), {
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    })
+    return NextResponse.json(data)
   } catch (error) {
-    return new NextResponse(JSON.stringify({ error: 'Failed to fetch data' }), {
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    })
+    console.error('Error in football API route:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch data from football API' },
+      { status: 500 }
+    )
   }
 }
 
