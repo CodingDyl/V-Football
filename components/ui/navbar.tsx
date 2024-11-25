@@ -41,8 +41,8 @@ export function Navbar({ user, auth, logo = "KickHub"}: NavbarProps) {
             <Link href="/stats" className="text-theme-background hover:text-theme-primary transition-colors">
               Player Stats
             </Link>
-            <Link href="/shop" className="text-theme-background hover:text-theme-primary transition-colors">
-              Merchandise
+            <Link href="/live-scores" className="text-theme-background hover:text-theme-primary transition-colors">
+              Live Scores
             </Link>
             {user ? (
               <>
