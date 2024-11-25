@@ -72,7 +72,7 @@ export default function LiveScoresPage() {
       setMatchesError(null)
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=matches`
+          `${process.env.FOOTBALL_API_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -95,7 +95,7 @@ export default function LiveScoresPage() {
       setStandingsError(null)
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=standings`
+          `${process.env.FOOTBALL_API_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=standings`
         )
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
