@@ -183,7 +183,7 @@ export default function PlayerInfoPage() {
 
   return (
     <>
-    <div className="min-h-screen bg-theme-dark relative overflow-hidden">
+    <div className="min-h-screen bg-theme-dark relative overflow-hidden flex flex-col">
       <Navbar user={user} auth={auth} />
 
       <div className="fixed inset-0 w-full h-full">
@@ -195,160 +195,148 @@ export default function PlayerInfoPage() {
         </Suspense>
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-24">
-        {playerInfo ? (
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Player Details Card */}
-            <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-              <CardHeader>
-                <CardTitle className="text-theme-background">Player Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-theme-light">Full Name:</div>
-                  <div className="text-theme-background">{playerInfo.fullName}</div>
-                  <div className="text-theme-light">Jersey Number:</div>
-                  <div className="text-theme-background">{playerInfo.jerseyNumber}</div>
-                  <div className="text-theme-light">Position:</div>
-                  <div className="text-theme-background">{playerInfo.preferredPosition}</div>
-                  <div className="text-theme-light">Preferred Foot:</div>
-                  <div className="text-theme-background">{playerInfo.preferredFoot}</div>
-                  <div className="text-theme-light">Fitness Level:</div>
-                  <div className="text-theme-background">{playerInfo.fitnessLevel}</div>
-                  <div className="text-theme-light">Injury Status:</div>
-                  <div className="text-theme-background">{playerInfo.injuryStatus}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Stats Card */}
-            <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-              <CardHeader>
-                <CardTitle className="text-theme-background">Player Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-theme-light">Goals:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.goals || 0}</div>
-                  <div className="text-theme-light">Assists:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.assists || 0}</div>
-                  <div className="text-theme-light">Clean Sheets:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.cleanSheets || 0}</div>
-                  <div className="text-theme-light">Yellow Cards:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.yellowCards || 0}</div>
-                  <div className="text-theme-light">Red Cards:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.redCards || 0}</div>
-                  <div className="text-theme-light">Own Goals:</div>
-                  <div className="text-theme-background">{playerInfo.stats?.ownGoals || 0}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {teamInfo ? (
-              <>
-                <Card className="col-span-2 mt-8 bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-                  <CardHeader>
-                    <CardTitle className="text-theme-background">Team Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-theme-light">Team Name:</div>
-                      <div className="text-theme-background">{teamInfo.teamName}</div>
-                      <div className="text-theme-light">Location:</div>
-                      <div className="text-theme-background">{teamInfo.location}</div>
-                      <div className="text-theme-light">Kit Color:</div>
-                      <div className="text-theme-background">{teamInfo.kitColor}</div>
-                      <div className="text-theme-light">League Status:</div>
-                      <div className="text-theme-background">{teamInfo.league ? 'League Team' : 'Non-League Team'}</div>
-                      <div className="text-theme-light">Win Rate:</div>
-                      <div className="text-theme-background">{teamInfo.winRate}%</div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="col-span-2 bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-                  <CardContent className="p-6 flex flex-col items-start justify-center gap-4">
-                    <CardTitle className="text-theme-background mb-8">Manage Player Profile:</CardTitle>
-                    <div className="flex flex-row items-center justify-around w-full px-4">
-                      <Button 
-                        onClick={() => setIsEditModalOpen(true)} 
-                        className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
-                      >
-                        Edit Player Profile
-                      </Button>
-                      
-                      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                        <DialogContent className="bg-theme-dark border border-theme-accent">
-                          <DialogHeader>
-                            <DialogTitle className="text-theme-background">Edit Player Profile</DialogTitle>
-                          </DialogHeader>
-                          <EditPlayerForm 
-                            playerInfo={playerInfo} 
-                            onSuccess={() => {
-                              setIsEditModalOpen(false)
-                              // Refresh player info after update
-                              fetchPlayerInfo()
-                            }} 
-                          />
-                        </DialogContent>
-                      </Dialog>
-                      
-                      <Link href="/create-team">
-                        <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                          Create New Team
-                        </Button>
-                      </Link>
-                      <Button 
-                        onClick={() => setIsJoinTeamModalOpen(true)}
-                        className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
-                      >
-                        Join Team
-                      </Button>
-                      <Button 
-                        onClick={() => setIsLeaveTeamModalOpen(true)}
-                        className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
-                      >
-                        Leave Team
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card className="col-span-2 w-full mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-                  <CardContent className="p-6 text-center">
-                      <h2 className="text-2xl font-bold text-theme-background mb-4">No Team Profile Found</h2>
-                      <div className="flex flex-row items-center justify-center gap-4 w-full px-4">
-                      <Link href="/create-team">
-                          <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                              Create A Team
-                          </Button>
-                      </Link>
-                      <Button 
-                        onClick={() => setIsJoinTeamModalOpen(true)}
-                        className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
-                      >
-                        Join Team
-                      </Button>
-                      </div>
-                  </CardContent>
+      <main className="relative z-10 flex-grow mt-16 sm:mt-20">
+        <div className="container mx-auto px-4 py-6 sm:py-12">
+          {playerInfo ? (
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-8">
+              {/* Player Details Card */}
+              <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+                <CardHeader>
+                  <CardTitle className="text-theme-background">Player Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                    <div className="text-theme-light">Full Name:</div>
+                    <div className="text-theme-background">{playerInfo.fullName}</div>
+                    <div className="text-theme-light">Jersey Number:</div>
+                    <div className="text-theme-background">{playerInfo.jerseyNumber}</div>
+                    <div className="text-theme-light">Position:</div>
+                    <div className="text-theme-background">{playerInfo.preferredPosition}</div>
+                    <div className="text-theme-light">Preferred Foot:</div>
+                    <div className="text-theme-background">{playerInfo.preferredFoot}</div>
+                    <div className="text-theme-light">Fitness Level:</div>
+                    <div className="text-theme-background">{playerInfo.fitnessLevel}</div>
+                    <div className="text-theme-light">Injury Status:</div>
+                    <div className="text-theme-background">{playerInfo.injuryStatus}</div>
+                  </div>
+                </CardContent>
               </Card>
-            )}
-          </div>
-        ) : (
-          <div className=" min-h-[60vh] flex-grow flex items-center justify-center">
-          <Card className="max-w-md mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-2xl font-bold text-theme-background mb-4">No Player Profile Found</h2>
-              <Link href="/create-profile">
-                <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
-                  Create Player Profile
-                </Button>
-              </Link>
-            </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+
+              {/* Stats Card */}
+              <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+                <CardHeader>
+                  <CardTitle className="text-theme-background">Player Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                    <div className="text-theme-light">Goals:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.goals || 0}</div>
+                    <div className="text-theme-light">Assists:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.assists || 0}</div>
+                    <div className="text-theme-light">Clean Sheets:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.cleanSheets || 0}</div>
+                    <div className="text-theme-light">Yellow Cards:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.yellowCards || 0}</div>
+                    <div className="text-theme-light">Red Cards:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.redCards || 0}</div>
+                    <div className="text-theme-light">Own Goals:</div>
+                    <div className="text-theme-background">{playerInfo.stats?.ownGoals || 0}</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {teamInfo ? (
+                <>
+                  <Card className="col-span-2 mt-4 sm:mt-8 bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+                    <CardHeader>
+                      <CardTitle className="text-theme-background">Team Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                        <div className="text-theme-light">Team Name:</div>
+                        <div className="text-theme-background">{teamInfo.teamName}</div>
+                        <div className="text-theme-light">Location:</div>
+                        <div className="text-theme-background">{teamInfo.location}</div>
+                        <div className="text-theme-light">Kit Color:</div>
+                        <div className="text-theme-background">{teamInfo.kitColor}</div>
+                        <div className="text-theme-light">League Status:</div>
+                        <div className="text-theme-background">{teamInfo.league ? 'League Team' : 'Non-League Team'}</div>
+                        <div className="text-theme-light">Win Rate:</div>
+                        <div className="text-theme-background">{teamInfo.winRate}%</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="col-span-2 bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+                    <CardContent className="p-4 sm:p-6 flex flex-col items-start justify-center gap-4">
+                      <CardTitle className="text-theme-background mb-4 sm:mb-8">Manage Player Profile:</CardTitle>
+                      <div className="flex flex-col sm:flex-row items-center justify-around w-full gap-4 px-2 sm:px-4">
+                        <Button 
+                          onClick={() => setIsEditModalOpen(true)} 
+                          className="w-full sm:w-auto bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Edit Profile
+                        </Button>
+                        
+                        <Link href="/create-team" className="w-full sm:w-auto">
+                          <Button className="w-full bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                            Create Team
+                          </Button>
+                        </Link>
+
+                        <Button 
+                          onClick={() => setIsJoinTeamModalOpen(true)}
+                          className="w-full sm:w-auto bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Join Team
+                        </Button>
+
+                        <Button 
+                          onClick={() => setIsLeaveTeamModalOpen(true)}
+                          className="w-full sm:w-auto bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Leave Team
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <Card className="col-span-2 w-full mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+                    <CardContent className="p-4 sm:p-6 text-center">
+                        <h2 className="text-2xl font-bold text-theme-background mb-4">No Team Profile Found</h2>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-2 sm:px-4">
+                        <Link href="/create-team" className="w-full sm:w-auto">
+                            <Button className="w-full bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                                Create A Team
+                            </Button>
+                        </Link>
+                        <Button 
+                          onClick={() => setIsJoinTeamModalOpen(true)}
+                          className="w-full sm:w-auto bg-theme-accent text-white hover:bg-theme-dark border border-theme-light"
+                        >
+                          Join Team
+                        </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className=" min-h-[60vh] flex-grow flex items-center justify-center">
+            <Card className="max-w-md mx-auto bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
+              <CardContent className="p-6 text-center">
+                <h2 className="text-2xl font-bold text-theme-background mb-4">No Player Profile Found</h2>
+                <Link href="/create-profile">
+                  <Button className="bg-theme-accent text-white hover:bg-theme-dark border border-theme-light">
+                    Create Player Profile
+                  </Button>
+                </Link>
+              </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </main>
 
       <Footer />
       <Toaster richColors />
