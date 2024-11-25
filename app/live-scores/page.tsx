@@ -63,18 +63,23 @@ export default function LiveScoresPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [standings, setStandings] = useState<Standing[]>([])
+  const [matchesError, setMatchesError] = useState<string | null>(null)
+  const [standingsError, setStandingsError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchMatches = async () => {
       setLoading(true)
+      setMatchesError(null)
       try {
         const response = await fetch(
           `/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
+        if (!response.ok) throw new Error('Failed to fetch matches')
         const data = await response.json()
         setMatches(data.matches || [])
       } catch (error) {
         console.error('Error fetching matches:', error)
+        setMatchesError('Unable to retrieve match data. Please try again later.')
       }
       setLoading(false)
     }
@@ -84,14 +89,17 @@ export default function LiveScoresPage() {
 
   useEffect(() => {
     const fetchStandings = async () => {
+      setStandingsError(null)
       try {
         const response = await fetch(
           `/api/football?leagueId=${selectedLeague.id}&type=standings`
         )
+        if (!response.ok) throw new Error('Failed to fetch standings')
         const data = await response.json()
         setStandings(data.standings?.[0]?.table || [])
       } catch (error) {
         console.error('Error fetching standings:', error)
+        setStandingsError('Unable to retrieve standings data. Please try again later.')
       }
     }
 
@@ -149,6 +157,8 @@ export default function LiveScoresPage() {
               <div className="grid gap-4">
                 {loading ? (
                   <LoadingSpinner />
+                ) : matchesError ? (
+                  <div className="text-theme-background text-center p-4">{matchesError}</div>
                 ) : (
                   matches
                     .filter(match => match.status === 'FINISHED')
@@ -187,6 +197,8 @@ export default function LiveScoresPage() {
               <div className="grid gap-4">
                 {loading ? (
                   <LoadingSpinner />
+                ) : matchesError ? (
+                  <div className="text-theme-background text-center p-4">{matchesError}</div>
                 ) : (
                   matches
                     .filter(match => match.status === 'SCHEDULED')
@@ -226,6 +238,8 @@ export default function LiveScoresPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <LoadingSpinner />
+            ) : standingsError ? (
+              <div className="text-theme-background text-center p-4">{standingsError}</div>
             ) : (
               <table className="w-full">
                 <thead>
