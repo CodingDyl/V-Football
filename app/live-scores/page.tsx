@@ -57,6 +57,13 @@ const leagues: League[] = [
   { id: "2014", name: "La Liga", code: "PD" },
 ]
 
+// Add this helper function before the LiveScoresPage component
+const isWeekendOrMonday = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = date.getDay(); // 0 is Sunday, 1 is Monday, 6 is Saturday
+  return day === 0 || day === 1 || day === 6;
+};
+
 export default function LiveScoresPage() {
   const [user] = useAuthState(auth)
   const [selectedLeague, setSelectedLeague] = useState<League>(leagues[0])
@@ -173,16 +180,20 @@ export default function LiveScoresPage() {
                   <div className="text-theme-background text-center p-4">{matchesError}</div>
                 ) : (
                   matches
-                    .filter(match => match.status === 'FINISHED')
-                    .slice(-5)
+                    .filter(match => 
+                      match.status === 'FINISHED' && 
+                      isWeekendOrMonday(match.utcDate)
+                    )
+                    .sort((a, b) => new Date(b.utcDate).getTime() - new Date(a.utcDate).getTime())
+                    .slice(0, 10)
                     .map((match) => (
                       <div 
                         key={match.id}
                         className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
                       >
                         <div className="flex items-center space-x-4 flex-1">
-                          <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
-                          <span className="text-theme-background">{match.homeTeam.name}</span>
+                          <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-8 h-8" />
+                          <span className="text-theme-background hidden md:inline">{match.homeTeam.name}</span>
                         </div>
                         <div className="flex items-center space-x-2 px-4">
                           <span className="text-theme-background text-lg font-bold">
@@ -190,8 +201,8 @@ export default function LiveScoresPage() {
                           </span>
                         </div>
                         <div className="flex items-center space-x-4 flex-1 justify-end">
-                          <span className="text-theme-background">{match.awayTeam.name}</span>
-                          <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
+                          <span className="text-theme-background hidden md:inline">{match.awayTeam.name}</span>
+                          <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-8 h-8" />
                         </div>
                       </div>
                     ))
@@ -221,8 +232,8 @@ export default function LiveScoresPage() {
                         className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
                       >
                         <div className="flex items-center space-x-4 flex-1">
-                          <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
-                          <span className="text-theme-background">{match.homeTeam.name}</span>
+                          <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-8 h-8" />
+                          <span className="text-theme-background hidden md:inline">{match.homeTeam.name}</span>
                         </div>
                         <div className="flex flex-col items-center px-4">
                           <span className="text-theme-background text-sm">
@@ -230,8 +241,8 @@ export default function LiveScoresPage() {
                           </span>
                         </div>
                         <div className="flex items-center space-x-4 flex-1 justify-end">
-                          <span className="text-theme-background">{match.awayTeam.name}</span>
-                          <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
+                          <span className="text-theme-background hidden md:inline">{match.awayTeam.name}</span>
+                          <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-8 h-8" />
                         </div>
                       </div>
                     ))
@@ -242,7 +253,7 @@ export default function LiveScoresPage() {
         </div>
       </div>
 
-      <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent my-8 mx-20">
+      <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent my-8 mx-2 md:mx-20">
         <CardHeader>
           <CardTitle className="text-theme-background">League Table</CardTitle>
         </CardHeader>

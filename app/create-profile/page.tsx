@@ -1,16 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { auth, db } from '@/firebase/clientApp'
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { SparklesCore } from "@/components/ui/sparkles"
 import { Navbar } from "@/components/ui/navbar"
 import { Footer } from "@/components/ui/footer"
 import { Toaster, toast } from "sonner"
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+// Dynamically import Spline with no SSR
+const Spline = dynamic(() => import('@splinetool/react-spline'), {
+  ssr: false,
+  loading: () => null
+})
 
 export default function CreateProfile() {
   const [user] = useAuthState(auth)
@@ -80,14 +86,12 @@ export default function CreateProfile() {
       <Navbar user={user} auth={auth} />
 
       <div className="fixed inset-0 w-full h-full">
-        <SparklesCore
-          background="transparent"
-          minSize={0.4}
-          maxSize={1}
-          particleDensity={1200}
-          className="w-full h-full"
-          particleColor="#00DF81"
-        />
+        <Suspense fallback={null}>
+          <Spline 
+            scene="https://prod.spline.design/kEz1OD81GbhmtueE/scene.splinecode"
+            className="w-full h-full"
+          />
+        </Suspense>
       </div>
 
       <div className="relative z-10 container mx-auto flex justify-center items-center px-4 py-24 flex-grow">

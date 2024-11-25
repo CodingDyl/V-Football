@@ -16,6 +16,7 @@ import { Toaster } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import { JoinTeamModal } from '@/components/JoinTeamModal'
+import Spline from '@splinetool/react-spline';
 
 interface PlayerStats {
   assists: number
@@ -186,14 +187,20 @@ export default function PlayerInfoPage() {
       <Navbar user={user} auth={auth} />
 
       <div className="fixed inset-0 w-full h-full">
-        <SparklesCore
-          background="transparent"
-          minSize={0.4}
-          maxSize={1}
-          particleDensity={1200}
+        <Spline 
           className="w-full h-full"
-          particleColor="#00DF81"
+          scene="https://prod.spline.design/kEz1OD81GbhmtueE/scene.splinecode" 
         />
+        <div className="absolute inset-0">
+          <SparklesCore
+            background="transparent"
+            minSize={0.4}
+            maxSize={1}
+            particleDensity={1200}
+            className="w-full h-full"
+            particleColor="#00DF81"
+          />
+        </div>
       </div>
 
       <div className="min-h-screen w-full relative">
