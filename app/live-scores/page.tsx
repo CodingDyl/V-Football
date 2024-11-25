@@ -57,6 +57,8 @@ const leagues: League[] = [
   { id: "2014", name: "La Liga", code: "PD" },
 ]
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
+
 export default function LiveScoresPage() {
   const [user] = useAuthState(auth)
   const [selectedLeague, setSelectedLeague] = useState<League>(leagues[0])
@@ -72,13 +74,14 @@ export default function LiveScoresPage() {
       setMatchesError(null)
       try {
         const response = await fetch(
-          `${process.env.FOOTBALL_API_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=matches`
+          `${API_URL}/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.message || 'Failed to fetch matches');
         }
         const data = await response.json()
+        console.log('Matches data:', data)
         setMatches(data.matches || [])
       } catch (error) {
         console.error('Error fetching matches:', error)
@@ -95,7 +98,7 @@ export default function LiveScoresPage() {
       setStandingsError(null)
       try {
         const response = await fetch(
-          `${process.env.FOOTBALL_API_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=standings`
+          `${API_URL}/api/football?leagueId=${selectedLeague.id}&type=standings`
         )
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
