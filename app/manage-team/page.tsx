@@ -48,7 +48,7 @@ interface Match {
   opponent: string;
   location: string;
   status: 'upcoming' | 'completed';
-  format: string;
+  format: '5v5' | '6v6' | '11v11';
   substitutesEnabled: boolean;
   requiredPlayers: number;
   score?: {

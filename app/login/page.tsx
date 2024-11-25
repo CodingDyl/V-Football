@@ -40,7 +40,7 @@ const playerImages2 = [
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-theme-dark relative overflow-hidden">
-      <div className="fixed inset-0 w-full h-full">
+      <div className="fixed inset-0 w-full h-full pointer-events-none">
         <SparklesCore
           background="transparent"
           minSize={0.4}
@@ -51,9 +51,7 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* Animated background gallery */}
-      <div className="fixed inset-0 px-[5%] grid grid-cols-4 gap-4 opacity-60">
-        {/* Column 1 - scrolling up */}
+      <div className="fixed inset-0 px-[5%] grid grid-cols-4 gap-4 opacity-60 pointer-events-none">
         <div className="flex flex-col gap-4 animate-scroll-up will-change-transform">
           {playerImages.map((src, imgIndex) => (
             <div
@@ -73,7 +71,6 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Column 2 - scrolling down */}
         <div className="flex flex-col gap-4 animate-scroll-down will-change-transform">
           {playerImages2.map((src, imgIndex) => (
             <div
@@ -93,7 +90,6 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Column 3 - scrolling up with reversed images */}
         <div className="flex flex-col gap-4 animate-scroll-up will-change-transform">
           {[...playerImages].reverse().map((src, imgIndex) => (
             <div
@@ -113,7 +109,6 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Column 4 - scrolling down with reversed images */}
         <div className="flex flex-col gap-4 animate-scroll-down will-change-transform">
           {[...playerImages2].reverse().map((src, imgIndex) => (
             <div
@@ -134,7 +129,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="min-h-screen w-full flex items-center justify-center relative z-10">
+      <div className="min-h-screen w-full flex items-center justify-center relative z-10 touch-action-manipulation">
         <LoginForm />
       </div>
     </div>
