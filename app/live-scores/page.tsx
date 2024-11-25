@@ -72,9 +72,12 @@ export default function LiveScoresPage() {
       setMatchesError(null)
       try {
         const response = await fetch(
-          `/api/football?leagueId=${selectedLeague.id}&type=matches`
+          `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
-        if (!response.ok) throw new Error('Failed to fetch matches')
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to fetch matches');
+        }
         const data = await response.json()
         setMatches(data.matches || [])
       } catch (error) {
@@ -92,9 +95,12 @@ export default function LiveScoresPage() {
       setStandingsError(null)
       try {
         const response = await fetch(
-          `/api/football?leagueId=${selectedLeague.id}&type=standings`
+          `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/football?leagueId=${selectedLeague.id}&type=standings`
         )
-        if (!response.ok) throw new Error('Failed to fetch standings')
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to fetch standings');
+        }
         const data = await response.json()
         setStandings(data.standings?.[0]?.table || [])
       } catch (error) {
