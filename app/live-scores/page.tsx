@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { auth } from '@/firebase/clientApp'
 import { format } from 'date-fns'
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner'
 
 interface Match {
   id: number
@@ -146,29 +147,33 @@ export default function LiveScoresPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {matches
-                  .filter(match => match.status === 'FINISHED')
-                  .slice(-5)
-                  .map((match) => (
-                    <div 
-                      key={match.id}
-                      className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
-                    >
-                      <div className="flex items-center space-x-4 flex-1">
-                        <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
-                        <span className="text-theme-background">{match.homeTeam.name}</span>
+                {loading ? (
+                  <LoadingSpinner />
+                ) : (
+                  matches
+                    .filter(match => match.status === 'FINISHED')
+                    .slice(-5)
+                    .map((match) => (
+                      <div 
+                        key={match.id}
+                        className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
+                      >
+                        <div className="flex items-center space-x-4 flex-1">
+                          <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
+                          <span className="text-theme-background">{match.homeTeam.name}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 px-4">
+                          <span className="text-theme-background text-lg font-bold">
+                            {match.score.fullTime.home} - {match.score.fullTime.away}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-4 flex-1 justify-end">
+                          <span className="text-theme-background">{match.awayTeam.name}</span>
+                          <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 px-4">
-                        <span className="text-theme-background text-lg font-bold">
-                          {match.score.fullTime.home} - {match.score.fullTime.away}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-4 flex-1 justify-end">
-                        <span className="text-theme-background">{match.awayTeam.name}</span>
-                        <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -180,29 +185,33 @@ export default function LiveScoresPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {matches
-                  .filter(match => match.status === 'SCHEDULED')
-                  .slice(0, 5)
-                  .map((match) => (
-                    <div 
-                      key={match.id}
-                      className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
-                    >
-                      <div className="flex items-center space-x-4 flex-1">
-                        <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
-                        <span className="text-theme-background">{match.homeTeam.name}</span>
+                {loading ? (
+                  <LoadingSpinner />
+                ) : (
+                  matches
+                    .filter(match => match.status === 'SCHEDULED')
+                    .slice(0, 5)
+                    .map((match) => (
+                      <div 
+                        key={match.id}
+                        className="flex items-center justify-between p-4 bg-theme-dark/30 rounded-lg border border-theme-accent/30"
+                      >
+                        <div className="flex items-center space-x-4 flex-1">
+                          <img src={match.homeTeam.crest} alt="" className="w-8 h-8" />
+                          <span className="text-theme-background">{match.homeTeam.name}</span>
+                        </div>
+                        <div className="flex flex-col items-center px-4">
+                          <span className="text-theme-background text-sm">
+                            {format(new Date(match.utcDate), 'MMM dd, HH:mm')}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-4 flex-1 justify-end">
+                          <span className="text-theme-background">{match.awayTeam.name}</span>
+                          <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
+                        </div>
                       </div>
-                      <div className="flex flex-col items-center px-4">
-                        <span className="text-theme-background text-sm">
-                          {format(new Date(match.utcDate), 'MMM dd, HH:mm')}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-4 flex-1 justify-end">
-                        <span className="text-theme-background">{match.awayTeam.name}</span>
-                        <img src={match.awayTeam.crest} alt="" className="w-8 h-8" />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -215,39 +224,43 @@ export default function LiveScoresPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-theme-background text-left">
-                  <th className="p-2">Pos</th>
-                  <th className="p-2">Team</th>
-                  <th className="p-2">P</th>
-                  <th className="p-2">W</th>
-                  <th className="p-2">D</th>
-                  <th className="p-2">L</th>
-                  <th className="p-2">GD</th>
-                  <th className="p-2">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {standings.map((standing) => (
-                  <tr key={standing.team.name} className="text-theme-background border-t border-theme-accent/30">
-                    <td className="p-2">{standing.position}</td>
-                    <td className="p-2">
-                      <div className="flex items-center space-x-2">
-                        <img src={standing.team.crest} alt="" className="w-6 h-6" />
-                        <span>{standing.team.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-2">{standing.playedGames}</td>
-                    <td className="p-2">{standing.won}</td>
-                    <td className="p-2">{standing.draw}</td>
-                    <td className="p-2">{standing.lost}</td>
-                    <td className="p-2">{standing.goalDifference}</td>
-                    <td className="p-2 font-bold">{standing.points}</td>
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="text-theme-background text-left">
+                    <th className="p-2">Pos</th>
+                    <th className="p-2">Team</th>
+                    <th className="p-2">P</th>
+                    <th className="p-2">W</th>
+                    <th className="p-2">D</th>
+                    <th className="p-2">L</th>
+                    <th className="p-2">GD</th>
+                    <th className="p-2">Pts</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {standings.map((standing) => (
+                    <tr key={standing.team.name} className="text-theme-background border-t border-theme-accent/30">
+                      <td className="p-2">{standing.position}</td>
+                      <td className="p-2">
+                        <div className="flex items-center space-x-2">
+                          <img src={standing.team.crest} alt="" className="w-6 h-6" />
+                          <span>{standing.team.name}</span>
+                        </div>
+                      </td>
+                      <td className="p-2">{standing.playedGames}</td>
+                      <td className="p-2">{standing.won}</td>
+                      <td className="p-2">{standing.draw}</td>
+                      <td className="p-2">{standing.lost}</td>
+                      <td className="p-2">{standing.goalDifference}</td>
+                      <td className="p-2 font-bold">{standing.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </CardContent>
       </Card>
