@@ -57,8 +57,6 @@ const leagues: League[] = [
   { id: "2014", name: "La Liga", code: "PD" },
 ]
 
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
-
 export default function LiveScoresPage() {
   const [user] = useAuthState(auth)
   const [selectedLeague, setSelectedLeague] = useState<League>(leagues[0])
@@ -74,7 +72,7 @@ export default function LiveScoresPage() {
       setMatchesError(null)
       try {
         const response = await fetch(
-          `${API_URL}/api/football?leagueId=${selectedLeague.id}&type=matches`
+          `/api/football?leagueId=${selectedLeague.id}&type=matches`
         )
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -98,17 +96,22 @@ export default function LiveScoresPage() {
       setStandingsError(null)
       try {
         const response = await fetch(
-          `${API_URL}/api/football?leagueId=${selectedLeague.id}&type=standings`
+          `/api/football?leagueId=${selectedLeague.id}&type=standings`
         )
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to fetch standings');
-        }
         const data = await response.json()
+        
+        if (data.error) {
+          throw new Error(data.message || 'Failed to fetch standings');
+        }
+        
         setStandings(data.standings?.[0]?.table || [])
       } catch (error) {
         console.error('Error fetching standings:', error)
-        setStandingsError('Unable to retrieve standings data. Please try again later.')
+        setStandingsError(
+          error instanceof Error 
+            ? error.message 
+            : 'Unable to retrieve standings data. Please try again later.'
+        )
       }
     }
 

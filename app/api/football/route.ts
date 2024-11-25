@@ -2,46 +2,76 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const leagueId = searchParams.get('leagueId')
-  const type = searchParams.get('type')
-
-  if (!process.env.FOOTBALL_API_KEY) {
-    console.error('FOOTBALL_API_KEY is not set')
-    return NextResponse.json({ error: 'API key configuration error' }, { status: 500 })
-  }
-
   try {
+    const { searchParams } = new URL(request.url)
+    const leagueId = searchParams.get('leagueId')
+    const type = searchParams.get('type')
+
+    if (!leagueId || !type) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: leagueId and type' },
+        { status: 400 }
+      )
+    }
+
+    if (!process.env.FOOTBALL_API_KEY) {
+      console.error('FOOTBALL_API_KEY is not set')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     const endpoint = type === 'standings'
       ? `https://api.football-data.org/v4/competitions/${leagueId}/standings`
       : `https://api.football-data.org/v4/competitions/${leagueId}/matches`
 
-    console.log('Making request to:', endpoint)
-    console.log('Using API key:', process.env.FOOTBALL_API_KEY.substring(0, 5) + '...')
-
-    const response = await fetch(endpoint, {
+    const apiResponse = await fetch(endpoint, {
       headers: {
         'X-Auth-Token': process.env.FOOTBALL_API_KEY,
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(10000)
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text()
       console.error('Football API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData
+        status: apiResponse.status,
+        statusText: apiResponse.statusText,
+        endpoint,
+        errorBody: errorText
       })
-      return NextResponse.json(errorData, { status: response.status })
+      
+      return NextResponse.json(
+        { 
+          error: true,
+          message: `Failed to fetch ${type}. Status: ${apiResponse.status}`,
+          details: apiResponse.statusText 
+        },
+        { status: apiResponse.status }
+      )
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    const data = await apiResponse.json()
+    return NextResponse.json({
+      error: false,
+      ...data
+    })
+    
   } catch (error) {
-    console.error('Error in football API route:', error)
+    console.error('Unhandled error in football API route:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    
     return NextResponse.json(
-      { error: 'Failed to fetch data from football API' },
+      { 
+        error: true,
+        message: 'An unexpected error occurred',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
