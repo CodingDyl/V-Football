@@ -10,13 +10,7 @@ import { Navbar } from "@/components/ui/navbar"
 import { Footer } from "@/components/ui/footer"
 import { Toaster, toast } from "sonner"
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
-
-// Dynamically import Spline with no SSR
-const Spline = dynamic(() => import('@splinetool/react-spline'), {
-  ssr: false,
-  loading: () => null
-})
+import Spline from '@splinetool/react-spline'
 
 export default function CreateProfile() {
   const [user] = useAuthState(auth)
