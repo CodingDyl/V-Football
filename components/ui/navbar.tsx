@@ -113,11 +113,11 @@ export function Navbar({ user, auth, logo = "KickHub"}: NavbarProps) {
                 Player Stats
               </Link>
               <Link 
-                href="/shop" 
+                href="/live-scores" 
                 className="text-theme-background hover:text-theme-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Merchandise
+                Live Scores
               </Link>
               {user ? (
                 <>
