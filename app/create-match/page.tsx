@@ -6,6 +6,13 @@ import { soccer_pitch } from "../assets";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SparklesCore } from "@/components/ui/sparkles";
+import { Navbar } from "@/components/ui/navbar";
+import { Footer } from "@/components/ui/footer";
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/firebase/clientApp';
+import { db } from '@/firebase/clientApp';
+import { collection, addDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 interface Player {
   name: string;
@@ -13,12 +20,32 @@ interface Player {
   initials: string;
 }
 
+interface GameSettings {
+  format: "5v5" | "6v6" | "11v11";
+  maxPlayers: number;
+  allowSubs: boolean;
+  subsLimit?: number;
+  location: string;
+  date: string;
+  time: string;
+  autoAssignPositions: boolean;
+  ownerName: string;
+}
+
 export default function CreateMatch() {
+  const router = useRouter();
+  const [user] = useAuthState(auth);
 //   const { data: session } = useSession();
-  const [gameSettings, setGameSettings] = useState({
+  const [gameSettings, setGameSettings] = useState<GameSettings>({
+    format: "5v5",
     maxPlayers: 10,
-    gameType: "5v5",
-    randomizePositions: false,
+    allowSubs: false,
+    subsLimit: 0,
+    location: "",
+    date: "",
+    time: "",
+    autoAssignPositions: false,
+    ownerName: user?.displayName || "",
   });
   const [players, setPlayers] = useState<Player[]>([]);
   const [guestName, setGuestName] = useState("");
@@ -72,8 +99,30 @@ export default function CreateMatch() {
     return newTeams;
   };
 
+  const handleCreateMatch = async () => {
+    try {
+      const dateTime = new Date(`${gameSettings.date}T${gameSettings.time}`);
+      
+      const matchesRef = collection(db, 'friendlyMatches');
+      const matchDoc = await addDoc(matchesRef, {
+        ...gameSettings,
+        dateTime: dateTime,
+        createdAt: new Date(),
+        createdBy: user?.email || 'anonymous',
+        ownerName: gameSettings.ownerName || (user?.displayName || user?.email?.split('@')[0] || 'Anonymous'),
+        players: [],
+        teams: null,
+        status: 'open'
+      });
+
+      router.push(`/match/${matchDoc.id}`);
+    } catch (error) {
+      console.error("Error creating match:", error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-theme-dark relative overflow-hidden">
+    <div className="min-h-screen bg-theme-dark relative overflow-hidden flex flex-col">
       {/* Background Sparkles */}
       <div className="fixed inset-0 w-full h-full">
         <SparklesCore
@@ -86,7 +135,13 @@ export default function CreateMatch() {
         />
       </div>
 
-      <div className="container mx-auto p-4 relative z-10">
+      <Navbar 
+        user={user ? { email: user.email, photoURL: user.photoURL } : null} 
+        auth={auth} 
+        logo="KickHub" 
+      />
+
+      <div className="container mx-auto p-4 relative z-10 pt-20 flex-grow">
         <h1 className="text-4xl font-bold mb-8 text-theme-background">Create Match</h1>
         
         {/* Game Settings Card */}
@@ -94,146 +149,141 @@ export default function CreateMatch() {
           <CardHeader>
             <CardTitle className="text-theme-background">Game Settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4">
+          <CardContent className="space-y-4 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select 
-                value={gameSettings.gameType}
+                value={gameSettings.format}
                 onChange={(e) => setGameSettings({
                   ...gameSettings,
-                  gameType: e.target.value,
-                  maxPlayers: e.target.value === "5v5" ? 10 : 12
+                  format: e.target.value as GameSettings['format'],
+                  maxPlayers: e.target.value === "5v5" ? 10 : e.target.value === "6v6" ? 12 : 22
                 })}
                 className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2"
               >
                 <option value="5v5">5 vs 5</option>
                 <option value="6v6">6 vs 6</option>
+                <option value="11v11">11 vs 11</option>
               </select>
-              
-              <div className="flex items-center gap-2">
+
+              <div>
                 <input
-                  type="checkbox"
-                  id="randomPositions"
-                  checked={gameSettings.randomizePositions}
+                  type="date"
+                  value={gameSettings.date}
                   onChange={(e) => setGameSettings({
                     ...gameSettings,
-                    randomizePositions: e.target.checked
+                    date: e.target.value
+                  })}
+                  className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2 w-full"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="time"
+                  value={gameSettings.time}
+                  onChange={(e) => setGameSettings({
+                    ...gameSettings,
+                    time: e.target.value
+                  })}
+                  className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2 w-full"
+                />
+              </div>
+
+              <input
+                type="text"
+                placeholder="Location"
+                value={gameSettings.location}
+                onChange={(e) => setGameSettings({
+                  ...gameSettings,
+                  location: e.target.value
+                })}
+                className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2"
+              />
+
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={gameSettings.allowSubs}
+                    onChange={(e) => setGameSettings({
+                      ...gameSettings,
+                      allowSubs: e.target.checked
+                    })}
+                    className="accent-theme-accent"
+                  />
+                  <span className="text-theme-background">Allow Subs</span>
+                </label>
+
+                {gameSettings.allowSubs && (
+                  <input
+                    type="number"
+                    placeholder="Subs limit"
+                    value={gameSettings.subsLimit}
+                    onChange={(e) => setGameSettings({
+                      ...gameSettings,
+                      subsLimit: parseInt(e.target.value)
+                    })}
+                    className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2 w-24"
+                  />
+                )}
+              </div>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={gameSettings.autoAssignPositions}
+                  onChange={(e) => setGameSettings({
+                    ...gameSettings,
+                    autoAssignPositions: e.target.checked
                   })}
                   className="accent-theme-accent"
                 />
-                <label htmlFor="randomPositions" className="text-theme-background">
-                  Randomize Positions
-                </label>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                <span className="text-theme-background">Auto-assign Positions</span>
+              </label>
 
-        {/* Join Game Section */}
-        <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent mb-6">
-          <CardContent className="pt-6">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter your name"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2 flex-1"
-              />
-              <Button
-                onClick={handleJoinGame}
-                className="bg-theme-accent text-white hover:bg-theme-primary"
-              >
-                Join Game
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Soccer Field */}
-        <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent mb-6">
-          <CardContent className="p-0">
-            <div className="relative w-full aspect-video bg-green-600 rounded-lg overflow-hidden">
-              <img 
-                src={soccer_pitch.src} 
-                alt="soccer pitch" 
-                className="w-full h-full object-fill" 
-              />
-              {positions.map((pos) => (
-                <div
-                  key={`${pos.id}-${pos.x}-${pos.y}`}
-                  style={{ left: pos.x, top: pos.y }}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                >
-                  <div className="w-12 h-12 rounded-full bg-theme-dark/80 border-2 border-theme-accent text-theme-background flex items-center justify-center cursor-pointer hover:bg-theme-accent hover:text-white transition-colors">
-                    {players.find(p => p.position === pos.id)?.initials || pos.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Player List & Teams */}
-        <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent">
-          <CardHeader>
-            <CardTitle className="text-theme-background">
-              Players ({players.length}/{gameSettings.maxPlayers})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {teams ? (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-theme-background font-semibold mb-2">Team A</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {teams.teamA.map((player, index) => (
-                      <div 
-                        key={index} 
-                        className="bg-theme-dark/30 px-4 py-2 rounded-lg text-theme-background hover:bg-theme-accent/30 transition-colors cursor-pointer"
-                      >
-                        {player.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-theme-background font-semibold mb-2">Team B</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {teams.teamB.map((player, index) => (
-                      <div 
-                        key={index} 
-                        className="bg-theme-dark/30 px-4 py-2 rounded-lg text-theme-background hover:bg-theme-accent/30 transition-colors cursor-pointer"
-                      >
-                        {player.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {players.map((player, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-theme-dark/30 px-4 py-2 rounded-lg text-theme-background hover:bg-theme-accent/30 transition-colors cursor-pointer"
+              <div>
+                <input
+                  type="text"
+                  placeholder="Match Owner Name"
+                  value={gameSettings.ownerName}
+                  onChange={(e) => setGameSettings({
+                    ...gameSettings,
+                    ownerName: e.target.value
+                  })}
+                  className="bg-theme-dark/50 text-theme-background border border-theme-accent/20 rounded-tl-lg p-2 w-full"
+                />
+                {user && (
+                  <Button
+                    onClick={() => setGameSettings({
+                      ...gameSettings,
+                      ownerName: user.displayName || user.email?.split('@')[0] || ""
+                    })}
+                    className="bg-theme-accent/50 text-white hover:bg-theme-accent mt-2"
+                    size="sm"
                   >
-                    {player.name}
-                  </div>
-                ))}
+                    Use My Name
+                  </Button>
+                )}
               </div>
-            )}
-            
-            {players.length >= gameSettings.maxPlayers && (
-              <Button
-                onClick={generateTeams}
-                className="bg-theme-accent text-white hover:bg-theme-primary mt-4 w-full"
-              >
-                Generate Random Teams
-              </Button>
-            )}
+            </div>
+
+            <Button
+              onClick={handleCreateMatch}
+              className="bg-theme-accent text-white hover:bg-theme-primary w-full mt-4"
+            >
+              Create Match
+            </Button>
           </CardContent>
         </Card>
       </div>
+
+      <Footer 
+        logo="KickHub"
+        description="Revolutionizing the way football enthusiasts connect, play, and compete."
+        quickLinks={['Book a Game', 'Player Stats', 'Merchandise', 'About Us']}
+        gameFormats={['5v5 Format', '6v6 Format', '11v11 Format', 'Custom Games']}
+        className="mt-auto"
+      />
     </div>
   );
 } 

@@ -1,10 +1,11 @@
 'use client'
 
 interface FooterProps {
-  logo?: string;
-  description?: string;
-  quickLinks?: string[];
-  gameFormats?: string[];
+  logo: string;
+  description: string;
+  quickLinks: string[];
+  gameFormats: string[];
+  className?: string;
 }
 
 export function Footer({

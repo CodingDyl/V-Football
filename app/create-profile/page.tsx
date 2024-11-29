@@ -70,7 +70,12 @@ export default function CreateProfile() {
             </CardContent>
           </Card>
         </div>
-        <Footer />
+        <Footer 
+        logo="KickHub"
+        description="Revolutionizing the way football enthusiasts connect, play, and compete."
+        quickLinks={['Book a Game', 'Player Stats', 'Merchandise', 'About Us']}
+        gameFormats={['5v5 Format', '6v6 Format', '11v11 Format', 'Custom Games']}
+      />
       </div>
     )
   }
@@ -173,7 +178,12 @@ export default function CreateProfile() {
         </Card>
       </div>
 
-      <Footer />
+      <Footer 
+        logo="KickHub"
+        description="Revolutionizing the way football enthusiasts connect, play, and compete."
+        quickLinks={['Book a Game', 'Player Stats', 'Merchandise', 'About Us']}
+        gameFormats={['5v5 Format', '6v6 Format', '11v11 Format', 'Custom Games']}
+      />
       <Toaster richColors />
     </div>
   )
