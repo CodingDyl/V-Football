@@ -371,11 +371,11 @@ export default function MatchPage() {
         {match.gameSettings.format !== "11v11" && (
           <Card className="bg-theme-dark/50 backdrop-blur-sm border border-theme-accent mb-6">
             <CardContent className="p-0">
-              <div className="relative w-full aspect-video bg-green-600 rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-[4/3] sm:aspect-video bg-green-600 rounded-lg overflow-hidden">
                 <img 
                   src={soccer_pitch.src} 
                   alt="soccer pitch" 
-                  className="w-full h-full object-fill" 
+                  className="w-full h-full object-cover sm:object-fill" 
                 />
                 {getPositionsForFormat(match.gameSettings.format)?.map((pos) => (
                   <div
@@ -384,10 +384,11 @@ export default function MatchPage() {
                     className="absolute transform -translate-x-1/2 -translate-y-1/2"
                     onClick={() => !match.gameSettings.autoAssignPositions && setSelectedPosition(pos.id)}
                   >
-                    <div className={`w-12 h-12 rounded-full bg-theme-dark/80 border-2 
+                    <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-theme-dark/80 border-2 
                       ${selectedPosition === pos.id ? 'border-theme-primary' : 'border-theme-accent'} 
                       text-theme-background flex items-center justify-center cursor-pointer 
-                      hover:bg-theme-accent hover:text-white transition-colors`}
+                      hover:bg-theme-accent hover:text-white transition-colors
+                      text-xs sm:text-base`}
                     >
                       {match.players.find(p => p.position === pos.id)?.initials || pos.label}
                     </div>
