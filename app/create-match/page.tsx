@@ -51,6 +51,7 @@ export default function CreateMatch() {
   const [guestName, setGuestName] = useState("");
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [teams, setTeams] = useState<{ teamA: Player[]; teamB: Player[] } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const positions = [
     { id: "gk", label: "GK", x: "50%", y: "90%" },
@@ -100,6 +101,7 @@ export default function CreateMatch() {
   };
 
   const handleCreateMatch = async () => {
+    setIsLoading(true);
     try {
       const dateTime = new Date(`${gameSettings.date}T${gameSettings.time}`);
       
@@ -118,8 +120,24 @@ export default function CreateMatch() {
       router.push(`/match/${matchDoc.id}`);
     } catch (error) {
       console.error("Error creating match:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-theme-dark flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-theme-accent rounded-full animate-spin border-t-transparent" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-4 h-4 bg-theme-accent rounded-full animate-pulse" />
+          </div>
+        </div>
+        <p className="text-theme-background mt-4 animate-pulse">Creating your match...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-theme-dark relative overflow-hidden flex flex-col">

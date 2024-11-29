@@ -300,7 +300,19 @@ export default function MatchPage() {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-theme-dark flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-theme-accent rounded-full animate-spin border-t-transparent" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-4 h-4 bg-theme-accent rounded-full animate-pulse" />
+          </div>
+        </div>
+        <p className="text-theme-background mt-4 animate-pulse">Loading match details...</p>
+      </div>
+    );
+  }
 
   if (!match || !match.gameSettings) {
     return <div>Error: Match not found</div>;
